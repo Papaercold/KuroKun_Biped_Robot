@@ -32,6 +32,33 @@ KuroKun uses **4 motors per leg** (8 total), arranged as follows. The robot's fo
 
 ---
 
+## 3D Printing Configuration
+
+All structural parts are printed with the following slicer settings (PrusaSlicer, tested on **Original Prusa CORE One**).
+
+| Parameter | Value |
+|---|---|
+| Printer | Original Prusa CORE One |
+| Slicing Profile | Prusa Core one |
+| Nozzle Diameter | 0.4 mm |
+| Print Profile | 0.20mm SPEED |
+| Filament | Generic PLA |
+| Layer Thickness | 0.2 mm |
+| Perimeters | 3 |
+| Infill Density | 15% |
+| Infill Pattern | Grid |
+| Brim Type | No brim |
+| Support Type | Organic (on build plate only) |
+
+**Temperature settings:**
+
+| | Bed (°C) | Nozzle (°C) |
+|---|---|---|
+| First Layer | 60 | 230 |
+| Other Layers | 60 | 220 |
+
+---
+
 ## Simulation & Sim-to-Real
 
 Bipedal locomotion was developed and trained in **NVIDIA Isaac Sim**, then transferred to the physical KuroKun hardware. The sim-to-real pipeline bridges the gap between the simulated environment and real-world dynamics.
