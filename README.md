@@ -250,7 +250,27 @@ cd /path/to/KuroKun_Biped_Robot
   --video_length 500
 ```
 
-Replace `<run_name>` with the run directory name under `logs/rsl_rl/kurokun_flat/` (e.g. `flat_baseline`).
+Replace `<run_name>` with the run directory name under `logs/rsl_rl/kurokun_flat/` (e.g. `flat_forward`).
+
+### Trained Runs
+
+Pre-trained checkpoints are committed under `logs/rsl_rl/kurokun_flat/`:
+
+| Run | Description | Iterations |
+|---|---|---|
+| `flat_baseline` | Initial run, omnidirectional velocity commands | 1000 |
+| `flat_forward` | Forward-walking policy, biased velocity commands (`lin_vel_x` 0.3–0.8 m/s) | 1000 |
+
+Use `flat_forward` for the best forward-walking behavior. To evaluate:
+
+```bash
+./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/play.py \
+  --task Isaac-Velocity-Flat-KuroKun-Play-v0 \
+  --num_envs 50 \
+  --load_run flat_forward \
+  --video \
+  --video_length 500
+```
 
 ### Output Structure
 
@@ -263,7 +283,10 @@ KuroKun_Biped_Robot/
     ├── videos/
     │   ├── train/              # Clips recorded during training
     │   └── play/               # Clips recorded during evaluation
-    ├── model_*.pt              # Checkpoints saved every 50 iterations
+    ├── exported/
+    │   ├── policy.pt           # TorchScript policy (inference)
+    │   └── policy.onnx         # ONNX policy (sim-to-real deployment)
+    ├── model_999.pt            # Final checkpoint (intermediate checkpoints removed)
     └── events.out.tfevents.*   # TensorBoard logs
 ```
 
@@ -300,6 +323,9 @@ KuroKun_Biped_Robot/
 │   ├── kurokun.usd          # USD for Isaac Sim (generated — not committed)
 │   ├── view_robot.launch.py # ROS 2 launch file (RSP + joint_state_publisher_gui + RViz2)
 │   └── kurokun.rviz         # Pre-configured RViz2 layout (Fixed Frame = base_link)
+├── logs/rsl_rl/kurokun_flat/
+│   ├── flat_baseline/       # Initial omnidirectional run (1000 iterations)
+│   └── flat_forward/        # Forward-walking policy (1000 iterations)
 ├── IsaacLab/                # Isaac Lab submodule (not committed — see .gitignore)
 ├── README.md                # This file (English)
 └── README_CN.md             # 中文文档

@@ -250,7 +250,27 @@ cd /path/to/KuroKun_Biped_Robot
   --video_length 500
 ```
 
-将 `<运行名>` 替换为 `logs/rsl_rl/kurokun_flat/` 下对应的运行目录名（例如 `flat_baseline`）。
+将 `<运行名>` 替换为 `logs/rsl_rl/kurokun_flat/` 下对应的运行目录名（例如 `flat_forward`）。
+
+### 已训练的运行记录
+
+已训练的权重保存在 `logs/rsl_rl/kurokun_flat/` 目录下：
+
+| 运行名 | 说明 | 训练迭代次数 |
+|---|---|---|
+| `flat_baseline` | 初始运行，全方向速度指令 | 1000 |
+| `flat_forward` | 向前行走策略，偏置速度指令（`lin_vel_x` 0.3–0.8 m/s） | 1000 |
+
+推荐使用 `flat_forward` 获得最佳前向行走效果。评估命令：
+
+```bash
+./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/play.py \
+  --task Isaac-Velocity-Flat-KuroKun-Play-v0 \
+  --num_envs 50 \
+  --load_run flat_forward \
+  --video \
+  --video_length 500
+```
 
 ### 输出目录结构
 
@@ -263,7 +283,10 @@ KuroKun_Biped_Robot/
     ├── videos/
     │   ├── train/              # 训练过程录制的视频片段
     │   └── play/               # 评估过程录制的视频片段
-    ├── model_*.pt              # 每 50 次迭代保存一次的模型检查点
+    ├── exported/
+    │   ├── policy.pt           # TorchScript 策略（推理用）
+    │   └── policy.onnx         # ONNX 策略（sim-to-real 部署用）
+    ├── model_999.pt            # 最终检查点（中间检查点已删除）
     └── events.out.tfevents.*   # TensorBoard 日志
 ```
 
@@ -300,6 +323,9 @@ KuroKun_Biped_Robot/
 │   ├── kurokun.usd          # Isaac Sim 用 USD（自动生成，不提交到仓库）
 │   ├── view_robot.launch.py # ROS 2 启动文件（RSP + joint_state_publisher_gui + RViz2）
 │   └── kurokun.rviz         # 预配置 RViz2 布局（固定坐标系 = base_link）
+├── logs/rsl_rl/kurokun_flat/
+│   ├── flat_baseline/       # 初始全方向运行（1000 次迭代）
+│   └── flat_forward/        # 向前行走策略（1000 次迭代）
 ├── IsaacLab/                # Isaac Lab 子仓库（不提交，见 .gitignore）
 ├── README.md                # 英文文档
 └── README_CN.md             # 本文件（中文）
