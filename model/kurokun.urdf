@@ -9,18 +9,18 @@
 
   Kinematic chain (per leg):
     base_link
-      └─[hip_roll,  axis=X] ─ hip_roll_link   (45.22×24.72×36.3 mm, long axis along X = inner/medial)
-          └─[hip_pitch, axis=Y] ─ hip_pitch_link (motor 45.22×24.72×36.3 mm, 48 g)
+      └─[hip_roll,  axis=X] ─ hip_roll_link   (24.72×36.3×45.22 mm, long axis along Z)
+          └─[hip_pitch, axis=Y] ─ hip_pitch_link (motor 36.3×24.72×45.22 mm, 48 g)
               └─[fixed]  ─ thigh_link  (37×25×35 mm, 10 g)
-              └─[knee,      axis=Y] ─ knee_link  (motor 45.22×24.72×36.3 mm, 48 g)
+              └─[knee,      axis=Y] ─ knee_link  (motor 36.3×24.72×45.22 mm, 48 g)
                   └─[fixed]  ─ shank_link  (37×25×35 mm, 10 g)
-                      └─[ankle,  axis=Y] ─ ankle_link (45.22×24.72×36.3 mm)
+                      └─[ankle,  axis=Y] ─ ankle_link (36.3×24.72×45.22 mm)
                       └─[foot_fixed] ─ foot_link  (80×45×10 mm)
 
   Hip assembly (L-shape from top / XY view):
-    - hip_pitch (Y-axis): FRONT motor, long axis along X (45.22 mm), at x=0, y=±0.050
-    - hip_roll  (X-axis): REAR  motor, rotated 90° around Z, long axis along Y (45.22 mm)
-    - Both tops flush (z=−0.030); OUTER faces aligned at y=±0.06236 — forms L corner.
+    - hip_pitch (Y-axis): FRONT motor, long axis along Z (45.22 mm), at x=0, y=±0.050
+    - hip_roll  (X-axis): REAR  motor, long axis along Z (45.22 mm); narrow in X (24.72 mm)
+    - Both joints at z=−0.030; both tops at z=−0.01989 (10.11 mm above shaft) — tops flush.
     - L opens INWARD (toward robot center). hip_roll extends inward.
     - Touching along X: ΔX(centers) = 45.22/2 + 24.72/2 = 22.61 + 12.36 = 34.97 mm
     - hip_pitch joint (base frame) : x= 0.000,   y=±0.050,   z=−0.030
@@ -40,14 +40,14 @@
   Inertia calculated analytically for uniform solid box  I = m/12*(a²+b²).
 
   Inertia tables (m = 0.048 kg):
-    hip_roll_link  box X=24.72 Y=45.22 Z=36.3 mm (rotated 90° around Z):
+    hip_roll_link  box X=24.72 Y=36.3 Z=45.22 mm (long axis along Z; shaft +12.5 mm above CoM):
       Ixx = m/12*(Y²+Z²) = 1.345e-5
-      Iyy = m/12*(X²+Z²) = 7.72e-6
-      Izz = m/12*(X²+Y²) = 1.062e-5
-    hip_pitch_link box X=45.22 Y=24.72 Z=36.3 mm:
-      Ixx = m/12*(Y²+Z²) = 7.72e-6
+      Iyy = m/12*(X²+Z²) = 1.062e-5
+      Izz = m/12*(X²+Y²) = 7.72e-6
+    hip_pitch/knee/ankle_link box X=36.3 Y=24.72 Z=45.22 mm (long axis vertical; shaft +12.5 mm above CoM):
+      Ixx = m/12*(Y²+Z²) = 1.062e-5
       Iyy = m/12*(X²+Z²) = 1.345e-5
-      Izz = m/12*(X²+Y²) = 1.062e-5
+      Izz = m/12*(X²+Y²) = 7.72e-6
 -->
 <robot name="kurokun">
 
@@ -109,31 +109,32 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- hip_roll motor box: X=24.72 mm, Y=45.22 mm, Z=36.3 mm (rotated 90° around Z) -->
-  <!-- Ixx=1.345e-5  Iyy=7.72e-6  Izz=1.062e-5                                      -->
+  <!-- hip_roll motor box: X=24.72 mm, Y=36.3 mm, Z=45.22 mm (long axis along Z)     -->
+  <!-- shaft +12.5 mm above CoM → visual_origin_z=−12.5 mm, top+10.11 mm above jt   -->
+  <!-- Ixx=1.345e-5  Iyy=1.062e-5  Izz=7.72e-6                                      -->
   <link name="left_hip_roll_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
       <inertia ixx="1.345e-5" ixy="0" ixz="0"
-               iyy="7.72e-6" iyz="0"
-               izz="1.062e-5"/>
+               iyy="1.062e-5" iyz="0"
+               izz="7.72e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.02472 0.0363 0.04522"/></geometry>
       <material name="motor_roll"><color rgba="0.80 0.42 0.10 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.02472 0.0363 0.04522"/></geometry>
     </collision>
   </link>
 
   <!-- LEFT HIP PITCH (axis = Y) -->
   <!-- Front motor. Offset +34.97 mm in X (forward), +10.25 mm in Y (outward). -->
   <!-- Joint in base frame: (0, +0.050, −0.030). Tops flush with hip_roll.      -->
-  <!-- Same orientation as knee/ankle (45.22 mm along X).                       -->
+  <!-- Same orientation as knee/ankle (45.22 mm along Z, long axis vertical).    -->
   <joint name="left_hip_pitch" type="revolute">
     <parent link="left_hip_roll_link"/>
     <child  link="left_hip_pitch_link"/>
@@ -143,25 +144,26 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- hip_pitch motor box: X=45.22 mm, Y=24.72 mm, Z=36.3 mm (same as knee/ankle) -->
-  <!-- Ixx=7.72e-6  Iyy=1.345e-5  Izz=1.062e-5                                    -->
+  <!-- hip_pitch motor box: X=36.3 mm, Y=24.72 mm, Z=45.22 mm (long axis along Z)  -->
+  <!-- shaft +12.5 mm above CoM → visual_origin_z=−12.5 mm, top+10.11 mm above jt -->
+  <!-- Ixx=1.062e-5  Iyy=1.345e-5  Izz=7.72e-6                                    -->
   <link name="left_hip_pitch_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <!-- motor box -->
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -171,7 +173,7 @@
   <joint name="left_thigh_joint" type="fixed">
     <parent link="left_hip_pitch_link"/>
     <child  link="left_thigh_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <link name="left_thigh_link">
@@ -204,24 +206,24 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- knee motor box: 45.22×24.72×36.3 mm, 48 g -->
+  <!-- knee motor box: 36.3×24.72×45.22 mm, 48 g (long axis along Z) -->
   <link name="left_knee_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <!-- motor box -->
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -230,7 +232,7 @@
   <joint name="left_shank_joint" type="fixed">
     <parent link="left_knee_link"/>
     <child  link="left_shank_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <link name="left_shank_link">
@@ -263,23 +265,23 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- Ankle motor box: 45.22×24.72×36.3 mm, mass 48 g -->
+  <!-- Ankle motor box: 36.3×24.72×45.22 mm, mass 48 g (long axis along Z) -->
   <link name="left_ankle_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -287,7 +289,7 @@
   <joint name="left_ankle_to_foot" type="fixed">
     <parent link="left_ankle_link"/>
     <child  link="left_foot_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <!-- Foot box: 80×45×10 mm, mass 10 g, centred on ankle axis (±40mm fore/aft) -->
@@ -331,24 +333,25 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- hip_roll motor box: X=24.72 mm, Y=45.22 mm, Z=36.3 mm (rotated 90° around Z) -->
-  <!-- Ixx=1.345e-5  Iyy=7.72e-6  Izz=1.062e-5                                      -->
+  <!-- hip_roll motor box: X=24.72 mm, Y=36.3 mm, Z=45.22 mm (long axis along Z)     -->
+  <!-- shaft +12.5 mm above CoM → visual_origin_z=−12.5 mm, top+10.11 mm above jt   -->
+  <!-- Ixx=1.345e-5  Iyy=1.062e-5  Izz=7.72e-6                                      -->
   <link name="right_hip_roll_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
       <inertia ixx="1.345e-5" ixy="0" ixz="0"
-               iyy="7.72e-6" iyz="0"
-               izz="1.062e-5"/>
+               iyy="1.062e-5" iyz="0"
+               izz="7.72e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.02472 0.0363 0.04522"/></geometry>
       <material name="motor_roll"><color rgba="0.80 0.42 0.10 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.02472 0.0363 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -364,25 +367,26 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- hip_pitch motor box: X=45.22 mm, Y=24.72 mm, Z=36.3 mm (same as knee/ankle) -->
-  <!-- Ixx=7.72e-6  Iyy=1.345e-5  Izz=1.062e-5                                    -->
+  <!-- hip_pitch motor box: X=36.3 mm, Y=24.72 mm, Z=45.22 mm (long axis along Z)  -->
+  <!-- shaft +12.5 mm above CoM → visual_origin_z=−12.5 mm, top+10.11 mm above jt -->
+  <!-- Ixx=1.062e-5  Iyy=1.345e-5  Izz=7.72e-6                                    -->
   <link name="right_hip_pitch_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <!-- motor box -->
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -391,7 +395,7 @@
   <joint name="right_thigh_joint" type="fixed">
     <parent link="right_hip_pitch_link"/>
     <child  link="right_thigh_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <link name="right_thigh_link">
@@ -424,24 +428,24 @@
     <dynamics damping="0.01" friction="0.01"/>
   </joint>
 
-  <!-- knee motor box: 45.22×24.72×36.3 mm, 48 g -->
+  <!-- knee motor box: 36.3×24.72×45.22 mm, 48 g (long axis along Z) -->
   <link name="right_knee_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <!-- motor box -->
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -450,7 +454,7 @@
   <joint name="right_shank_joint" type="fixed">
     <parent link="right_knee_link"/>
     <child  link="right_shank_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <link name="right_shank_link">
@@ -486,19 +490,19 @@
   <link name="right_ankle_link">
     <inertial>
       <mass value="0.048"/>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <inertia ixx="7.72e-6" ixy="0" ixz="0"
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <inertia ixx="1.062e-5" ixy="0" ixz="0"
                iyy="1.345e-5" iyz="0"
-               izz="1.062e-5"/>
+               izz="7.72e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
       <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
-      <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
+      <origin xyz="0 0 -0.0125" rpy="0 0 0"/>
+      <geometry><box size="0.0363 0.02472 0.04522"/></geometry>
     </collision>
   </link>
 
@@ -506,7 +510,7 @@
   <joint name="right_ankle_to_foot" type="fixed">
     <parent link="right_ankle_link"/>
     <child  link="right_foot_link"/>
-    <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.03511" rpy="0 0 0"/>
   </joint>
 
   <link name="right_foot_link">

@@ -129,12 +129,12 @@ base_link  (1 g, kinematic root — no visual)
 |---|---|---|---|
 | `base_link` | 120 × 100 × 60 | 1 g | Kinematic root frame only — no visual, negligible mass |
 | `head_link` | 65 × 75.28 × 42 | 250 g | Torso body (RPi 4B + PSU); sits between legs, protrudes ~20 mm forward of hip motors |
-| `*_hip_roll_link` | 24.72 × 45.22 × 36.3 | 48 g | LX-16A; long axis along Y (rotated 90° from standard) |
-| `*_hip_pitch_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_hip_roll_link` | 24.72 × 36.3 × 45.22 | 48 g | LX-16A; long axis along Z; shaft +12.5 mm above geometric centre |
+| `*_hip_pitch_link` | 36.3 × 24.72 × 45.22 | 48 g | LX-16A; long axis along Z; shaft +12.5 mm above geometric centre |
 | `*_thigh_link` | 37 × 25 × 35 | 10 g | 3D-printed thigh connector |
-| `*_knee_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_knee_link` | 36.3 × 24.72 × 45.22 | 48 g | LX-16A; long axis along Z; shaft +12.5 mm above geometric centre |
 | `*_shank_link` | 37 × 25 × 35 | 10 g | 3D-printed shank connector |
-| `*_ankle_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_ankle_link` | 36.3 × 24.72 × 45.22 | 48 g | LX-16A; long axis along Z; shaft +12.5 mm above geometric centre |
 | `*_foot_link` | 80 × 45 × 10 | 10 g | 3D-printed foot; CoM centred on ankle axis (±40 mm fore/aft) |
 
 ### Joints
@@ -154,18 +154,18 @@ The two hip motors form an **L-shape** when viewed from above (XY plane):
 ```
 +X (forward)
      ↑
-     │   ┌────────────────┐
-     │   │   hip_pitch    │   ← revolute, Y-axis; long axis along X
-     │   └────────────────┘
-     │             ┌──────────────────────┐
-     └─────────────┤      hip_roll        │   ← revolute, X-axis; long axis along Y
-                   └──────────────────────┘
-                   ↑ outer faces flush (L opens inward toward robot center)
+     │  ┌──────────────┐
+     │  │  hip_pitch   │  ← revolute, Y-axis; 36.3(X) × 24.72(Y) mm in top view
+     │  └──────────────┘
+     │       ┌──────────┐
+     └────────┤ hip_roll │  ← revolute, X-axis; 24.72(X) × 36.3(Y) mm in top view
+              └──────────┘
+              ↑ L opens inward; both motors 45.22 mm tall (Z)
 ```
 
-- **hip_pitch** is the front motor; its long axis (45.22 mm) points along X
-- **hip_roll** is the rear motor; rotated 90° around Z so its long axis (45.22 mm) points along Y
-- The two motors **touch** along X with no gap; their outer Y-faces are **flush**
+- **All 8 motors** have their **long axis along Z** (45.22 mm vertical); shaft is **+12.5 mm above the geometric centre**, with 10.11 mm of motor body above the shaft
+- **hip_pitch** is the front motor: 36.3 mm wide (X) × 24.72 mm deep (Y) in the XY plane
+- **hip_roll** is the rear motor: 24.72 mm wide (X) × 36.3 mm deep (Y) in the XY plane
 - The L opens **inward**, so hip_roll extends toward the robot center
 
 ---
