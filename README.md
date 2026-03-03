@@ -73,6 +73,8 @@ Bipedal locomotion was developed and trained in **NVIDIA Isaac Sim**, then trans
 KuroKun_Biped_Robot/
 ├── 3DPrintDocuments/   # 3D print files for all structural parts
 ├── FusionDocuments/    # Fusion 360 CAD source files
+├── URDF/
+│   └── kurokun.urdf    # Simplified box-model URDF for simulation
 ├── README.md           # This file (English)
 └── README_CN.md        # 中文文档
 ```

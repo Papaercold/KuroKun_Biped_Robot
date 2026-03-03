@@ -73,6 +73,8 @@ KuroKun 每条腿使用 **4 个电机**，共 8 个。规定机器人面向方�
 KuroKun_Biped_Robot/
 ├── 3DPrintDocuments/   # 所有结构件的 3D 打印文件
 ├── FusionDocuments/    # Fusion 360 CAD 源文件
+├── URDF/
+│   └── kurokun.urdf    # 用于仿真的简化 Box 模型 URDF
 ├── README.md           # 英文文档
 └── README_CN.md        # 本文件（中文）
 ```
