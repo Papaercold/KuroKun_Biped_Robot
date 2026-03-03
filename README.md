@@ -6,6 +6,8 @@ KuroKun is an open-source bipedal robot platform. This repository serves as the 
 
 ## Overview
 
+![KuroKun Design Sketch](Design%20sketch.jpg)
+
 KuroKun is a fully 3D-printed bipedal robot driven by **LX-16A serial bus servos** and a **Raspberry Pi** controller. The project demonstrates a complete pipeline from simulation to hardware, including bipedal locomotion training in **NVIDIA Isaac Sim** and **sim-to-real transfer** to the physical platform.
 
 ---
