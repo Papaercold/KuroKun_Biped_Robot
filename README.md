@@ -67,9 +67,16 @@ Bipedal locomotion was developed and trained in **NVIDIA Isaac Sim**, then trans
 
 ---
 
-## URDF
+## Robot Model
 
-`URDF/kurokun.urdf` is a **simplified box-model** URDF for rigid-body dynamics simulation. Every part is approximated as a uniform solid box — visual fidelity is intentionally traded away in favor of correct mass, center of mass, and inertia tensor, which are the only properties that affect dynamics.
+The `model/` directory contains the robot description in two formats:
+
+| File | Format | Used by |
+|---|---|---|
+| `model/kurokun.urdf` | URDF | ROS 2 (visualisation, kinematics) |
+| `model/kurokun.usd` | USD | NVIDIA Isaac Sim (physics simulation / training) |
+
+`kurokun.urdf` is a **simplified box-model** for rigid-body dynamics. Every part is approximated as a uniform solid box — visual fidelity is intentionally traded away in favor of correct mass, center of mass, and inertia tensor, which are the only properties that affect dynamics.
 
 ### Quick View (ROS 2 Jazzy)
 
@@ -84,7 +91,7 @@ sudo apt install ros-jazzy-robot-state-publisher \
 **Launch:**
 
 ```bash
-ros2 launch URDF/view_robot.launch.py
+ros2 launch model/view_robot.launch.py
 ```
 
 This opens three windows simultaneously:
@@ -102,7 +109,8 @@ This opens three windows simultaneously:
 ### Kinematic Chain
 
 ```
-base_link  (120×100×60 mm, 250 g)
+base_link  (1 g, kinematic root — no visual)
+├── head_link  [fixed]  →  head_link  (65×75.28×42 mm, 250 g, torso body)
 ├── left_hip_roll   [revolute, X]  →  left_hip_roll_link   (48 g)
 │     └── left_hip_pitch  [revolute, Y]  →  left_hip_pitch_link  (48 g)
 │           └── [fixed]  →  left_thigh_link  (10 g)
@@ -117,14 +125,15 @@ base_link  (120×100×60 mm, 250 g)
 
 | Link | Box size (mm) | Mass | Notes |
 |---|---|---|---|
-| `base_link` | 120 × 100 × 60 | 250 g | Torso — RPi 4B + PSU + structure |
+| `base_link` | 120 × 100 × 60 | 1 g | Kinematic root frame only — no visual, negligible mass |
+| `head_link` | 65 × 75.28 × 42 | 250 g | Torso body (RPi 4B + PSU); sits between legs, protrudes ~20 mm forward of hip motors |
 | `*_hip_roll_link` | 24.72 × 45.22 × 36.3 | 48 g | LX-16A; long axis along Y (rotated 90° from standard) |
 | `*_hip_pitch_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
 | `*_thigh_link` | 37 × 25 × 35 | 10 g | 3D-printed thigh connector |
 | `*_knee_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
 | `*_shank_link` | 37 × 25 × 35 | 10 g | 3D-printed shank connector |
 | `*_ankle_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
-| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D-printed foot; CoM offset +10 mm forward |
+| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D-printed foot; CoM centred on ankle axis (±40 mm fore/aft) |
 
 ### Joints
 
@@ -165,10 +174,12 @@ The two hip motors form an **L-shape** when viewed from above (XY plane):
 KuroKun_Biped_Robot/
 ├── 3DPrintDocuments/        # 3D print files for all structural parts
 ├── FusionDocuments/         # Fusion 360 CAD source files
-├── URDF/
-│   ├── kurokun.urdf         # Simplified box-model URDF for simulation
+├── model/
+│   ├── kurokun.urdf         # Simplified box-model URDF (ROS 2 / kinematics)
+│   ├── kurokun.usd          # USD for Isaac Sim (generated — not committed)
 │   ├── view_robot.launch.py # ROS 2 launch file (RSP + joint_state_publisher_gui + RViz2)
 │   └── kurokun.rviz         # Pre-configured RViz2 layout (Fixed Frame = base_link)
+├── IsaacLab/                # Isaac Lab submodule (not committed — see .gitignore)
 ├── README.md                # This file (English)
 └── README_CN.md             # 中文文档
 ```

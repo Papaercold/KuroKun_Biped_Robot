@@ -67,9 +67,16 @@ KuroKun 每条腿使用 **4 个电机**，共 8 个。规定机器人面向方�
 
 ---
 
-## URDF
+## 机器人模型
 
-`URDF/kurokun.urdf` 是用于刚体动力学仿真的**简化 Box 模型** URDF。所有结构件均以均质长方体近似，放弃视觉精度，换取正确的质量、质心与惯性张量——这三者才是动力学仿真中唯一起作用的物理量。
+`model/` 目录下包含两种格式的机器人描述文件：
+
+| 文件 | 格式 | 用途 |
+|---|---|---|
+| `model/kurokun.urdf` | URDF | ROS 2（可视化、运动学） |
+| `model/kurokun.usd` | USD | NVIDIA Isaac Sim（物理仿真 / 训练） |
+
+`kurokun.urdf` 是用于刚体动力学仿真的**简化 Box 模型**。所有结构件均以均质长方体近似，放弃视觉精度，换取正确的质量、质心与惯性张量——这三者才是动力学仿真中唯一起作用的物理量。
 
 ### 快速查看（ROS 2 Jazzy）
 
@@ -84,7 +91,7 @@ sudo apt install ros-jazzy-robot-state-publisher \
 **启动：**
 
 ```bash
-ros2 launch URDF/view_robot.launch.py
+ros2 launch model/view_robot.launch.py
 ```
 
 该命令同时打开以下窗口：
@@ -102,7 +109,8 @@ ros2 launch URDF/view_robot.launch.py
 ### 运动学链
 
 ```
-base_link  (120×100×60 mm，250 g)
+base_link  （1 g，运动学根节点——无视觉模型）
+├── head_link  [固定]  →  head_link  （65×75.28×42 mm，250 g，机身主体）
 ├── left_hip_roll   [转动，X 轴]  →  left_hip_roll_link   (48 g)
 │     └── left_hip_pitch  [转动，Y 轴]  →  left_hip_pitch_link  (48 g)
 │           └── [固定]  →  left_thigh_link  (10 g)
@@ -117,14 +125,15 @@ base_link  (120×100×60 mm，250 g)
 
 | 链接名 | 箱体尺寸（mm） | 质量 | 说明 |
 |---|---|---|---|
-| `base_link` | 120 × 100 × 60 | 250 g | 躯干：树莓派 4B + 电源 + 结构件 |
+| `base_link` | 120 × 100 × 60 | 1 g | 运动学根节点（无视觉模型，质量可忽略） |
+| `head_link` | 65 × 75.28 × 42 | 250 g | 机身主体（树莓派 4B + 电源），位于两腿之间，向前突出约 20 mm |
 | `*_hip_roll_link` | 24.72 × 45.22 × 36.3 | 48 g | LX-16A 舵机；长轴沿 Y（绕 Z 旋转 90°） |
 | `*_hip_pitch_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
 | `*_thigh_link` | 37 × 25 × 35 | 10 g | 3D 打印大腿连接件 |
 | `*_knee_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
 | `*_shank_link` | 37 × 25 × 35 | 10 g | 3D 打印小腿连接件 |
 | `*_ankle_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
-| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D 打印脚板；质心沿 X 正向偏移 10 mm |
+| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D 打印脚板；质心居中（踝关节轴前后各 40 mm） |
 
 ### 关节（Joints）
 
@@ -165,10 +174,12 @@ base_link  (120×100×60 mm，250 g)
 KuroKun_Biped_Robot/
 ├── 3DPrintDocuments/        # 所有结构件的 3D 打印文件
 ├── FusionDocuments/         # Fusion 360 CAD 源文件
-├── URDF/
-│   ├── kurokun.urdf         # 用于仿真的简化 Box 模型 URDF
+├── model/
+│   ├── kurokun.urdf         # 简化 Box 模型 URDF（ROS 2 / 运动学）
+│   ├── kurokun.usd          # Isaac Sim 用 USD（自动生成，不提交到仓库）
 │   ├── view_robot.launch.py # ROS 2 启动文件（RSP + joint_state_publisher_gui + RViz2）
 │   └── kurokun.rviz         # 预配置 RViz2 布局（固定坐标系 = base_link）
+├── IsaacLab/                # Isaac Lab 子仓库（不提交，见 .gitignore）
 ├── README.md                # 英文文档
 └── README_CN.md             # 本文件（中文）
 ```

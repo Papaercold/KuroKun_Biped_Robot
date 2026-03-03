@@ -1,0 +1,14 @@
+# External tools cloned locally — not part of this repo
+IsaacLab/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Isaac Sim generated files (derived from URDF, do not commit)
+model/*.usd
+model/configuration/
+model/__pycache__/
+model/.asset_hash
+model/config.yaml

@@ -51,35 +51,40 @@
 -->
 <robot name="kurokun">
 
-  <!-- ========== MATERIALS ========== -->
-  <material name="white">
-    <color rgba="0.95 0.95 0.95 1.0"/>
+  <!-- ========== MATERIALS (named — for RViz2; Isaac Sim uses inline colors below) ========== -->
+  <material name="body">
+    <color rgba="0.40 0.55 0.70 1.0"/>
   </material>
-  <material name="gray">
-    <color rgba="0.45 0.45 0.45 1.0"/>
+  <material name="motor">
+    <color rgba="0.22 0.22 0.24 1.0"/>
   </material>
-  <material name="dark_gray">
-    <color rgba="0.25 0.25 0.25 1.0"/>
+  <material name="motor_roll">
+    <color rgba="0.80 0.42 0.10 1.0"/>
+  </material>
+  <material name="connector">
+    <color rgba="0.62 0.64 0.68 1.0"/>
+  </material>
+  <material name="foot">
+    <color rgba="0.12 0.12 0.14 1.0"/>
+  </material>
+  <material name="head">
+    <color rgba="0.90 0.85 0.80 1.0"/>
   </material>
 
   <!-- ========== BASE LINK ========== -->
-  <!-- Box: 120×100×60 mm, mass 250 g -->
-  <!-- Ixx = 0.25/12*(0.100²+0.060²) = 2.833e-4 -->
-  <!-- Iyy = 0.25/12*(0.120²+0.060²) = 3.750e-4 -->
-  <!-- Izz = 0.25/12*(0.120²+0.100²) = 5.083e-4 -->
+  <!-- URDF root frame (required). No visual. Mass ≈ 1 g (negligible connector). -->
+  <!-- All body mass (RPi + PSU + electronics = 250 g) lives in head_link.        -->
+  <!-- Ixx = 0.001/12*(0.100²+0.060²) = 1.133e-6                                 -->
+  <!-- Iyy = 0.001/12*(0.120²+0.060²) = 1.500e-6                                 -->
+  <!-- Izz = 0.001/12*(0.120²+0.100²) = 2.033e-6                                 -->
   <link name="base_link">
     <inertial>
-      <mass value="0.250"/>
+      <mass value="0.001"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="2.833e-4" ixy="0" ixz="0"
-               iyy="3.750e-4" iyz="0"
-               izz="5.083e-4"/>
+      <inertia ixx="1.133e-6" ixy="0" ixz="0"
+               iyy="1.500e-6" iyz="0"
+               izz="2.033e-6"/>
     </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.120 0.100 0.060"/></geometry>
-      <material name="white"/>
-    </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.120 0.100 0.060"/></geometry>
@@ -117,7 +122,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor_roll"><color rgba="0.80 0.42 0.10 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -152,7 +157,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -180,7 +185,7 @@
     <visual>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
       <geometry><box size="0.037 0.025 0.035"/></geometry>
-      <material name="gray"/>
+      <material name="connector"><color rgba="0.62 0.64 0.68 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
@@ -212,7 +217,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -239,7 +244,7 @@
     <visual>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
       <geometry><box size="0.037 0.025 0.035"/></geometry>
-      <material name="gray"/>
+      <material name="connector"><color rgba="0.62 0.64 0.68 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
@@ -270,7 +275,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -285,25 +290,25 @@
     <origin xyz="0 0 -0.0363" rpy="0 0 0"/>
   </joint>
 
-  <!-- Foot box: 80×45×10 mm, mass 10 g, offset +10 mm forward -->
+  <!-- Foot box: 80×45×10 mm, mass 10 g, centred on ankle axis (±40mm fore/aft) -->
   <!-- Ixx = 0.010/12*(0.045²+0.010²) = 1.771e-6 -->
   <!-- Iyy = 0.010/12*(0.080²+0.010²) = 5.417e-6 -->
   <!-- Izz = 0.010/12*(0.080²+0.045²) = 7.021e-6 -->
   <link name="left_foot_link">
     <inertial>
       <mass value="0.010"/>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <inertia ixx="1.771e-6" ixy="0" ixz="0"
                iyy="5.417e-6" iyz="0"
                izz="7.021e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <geometry><box size="0.080 0.045 0.010"/></geometry>
-      <material name="dark_gray"/>
+      <material name="foot"><color rgba="0.12 0.12 0.14 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <geometry><box size="0.080 0.045 0.010"/></geometry>
     </collision>
   </link>
@@ -339,7 +344,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.02472 0.04522 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor_roll"><color rgba="0.80 0.42 0.10 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -373,7 +378,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -400,7 +405,7 @@
     <visual>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
       <geometry><box size="0.037 0.025 0.035"/></geometry>
-      <material name="gray"/>
+      <material name="connector"><color rgba="0.62 0.64 0.68 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
@@ -432,7 +437,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -459,7 +464,7 @@
     <visual>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
       <geometry><box size="0.037 0.025 0.035"/></geometry>
-      <material name="gray"/>
+      <material name="connector"><color rgba="0.62 0.64 0.68 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.0175" rpy="0 0 0"/>
@@ -489,7 +494,7 @@
     <visual>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
       <geometry><box size="0.04522 0.02472 0.0363"/></geometry>
-      <material name="gray"/>
+      <material name="motor"><color rgba="0.22 0.22 0.24 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 -0.01815" rpy="0 0 0"/>
@@ -507,19 +512,54 @@
   <link name="right_foot_link">
     <inertial>
       <mass value="0.010"/>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <inertia ixx="1.771e-6" ixy="0" ixz="0"
                iyy="5.417e-6" iyz="0"
                izz="7.021e-6"/>
     </inertial>
     <visual>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <geometry><box size="0.080 0.045 0.010"/></geometry>
-      <material name="dark_gray"/>
+      <material name="foot"><color rgba="0.12 0.12 0.14 1.0"/></material>
     </visual>
     <collision>
-      <origin xyz="0.010 0 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
       <geometry><box size="0.080 0.045 0.010"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ============================================================ -->
+  <!--                          HEAD                                -->
+  <!-- ============================================================ -->
+  <!-- Y = 75.28 mm : spans hip_pitch inner faces (y=±0.03764m, same as before).    -->
+  <!-- X = 65 mm    : rear flush with hip assembly (x=−0.02261m),                   -->
+  <!--                front protrudes 19.78mm beyond hip_pitch front (x=+0.04239m). -->
+  <!-- Z = 42 mm    : top 6mm above motor tops (z=−0.024m), bottom z=−0.066m.       -->
+  <!-- Joint centre (base frame) = x=+0.010, z=−0.045 (box centroid).               -->
+  <!-- CoM at physical centre (0,0,0). mass=250g (RPi+PSU+electronics).             -->
+  <!-- Ixx=1.548e-4  Iyy=1.248e-4  Izz=2.061e-4  (250g, 65×75.28×42mm)            -->
+  <joint name="head_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="head_link"/>
+    <origin xyz="0.010 0 -0.045" rpy="0 0 0"/>
+  </joint>
+
+  <link name="head_link">
+    <inertial>
+      <mass value="0.250"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1.548e-4" ixy="0" ixz="0"
+               iyy="1.248e-4" iyz="0"
+               izz="2.061e-4"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.065 0.07528 0.042"/></geometry>
+      <material name="head"><color rgba="0.90 0.85 0.80 1.0"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.065 0.07528 0.042"/></geometry>
     </collision>
   </link>
 
