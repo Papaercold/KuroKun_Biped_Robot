@@ -4,6 +4,8 @@
 
 KuroKun is an open-source bipedal robot platform. This repository serves as the **official design documentation** for KuroKun, covering mechanical design, simulation, and real-world deployment.
 
+> **Course Project** — This project was developed as part of the **Duke University Robot Studio** course, Spring 2026. You are welcome to use this project as a reference and source of inspiration. However, please build upon it with your **own original improvements** — do not copy or submit this work as your own.
+
 ---
 
 ## Overview
@@ -167,6 +169,123 @@ The two hip motors form an **L-shape** when viewed from above (XY plane):
 - **hip_pitch** is the front motor: 36.3 mm wide (X) × 24.72 mm deep (Y) in the XY plane
 - **hip_roll** is the rear motor: 24.72 mm wide (X) × 36.3 mm deep (Y) in the XY plane
 - The L opens **inward**, so hip_roll extends toward the robot center
+
+---
+
+## Locomotion Training (Isaac Lab)
+
+Bipedal locomotion is trained with **PPO** (Proximal Policy Optimization) using [Isaac Lab](https://github.com/isaac-sim/IsaacLab). The policy learns velocity-tracking locomotion on flat terrain.
+
+### Prerequisites
+
+1. **Generate the USD** from the URDF (run once, or whenever the URDF changes):
+
+```bash
+cd /path/to/KuroKun_Biped_Robot/IsaacLab
+
+CONDA_PREFIX=$(python -c "import sys; print(sys.prefix)") \
+./isaaclab.sh -p scripts/tools/convert_urdf.py \
+  --input ../model/kurokun.urdf \
+  --output ../model/kurokun.usd \
+  --merge-joints
+```
+
+> `--merge-joints` merges fixed joints (thigh, shank, foot) into their parent rigid bodies, which is required for Isaac Lab's articulation system.
+
+### Training
+
+Run training from the **repository root** (not from inside `IsaacLab/`) so that logs are saved under `KuroKun_Biped_Robot/logs/`:
+
+```bash
+cd /path/to/KuroKun_Biped_Robot
+
+./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task Isaac-Velocity-Flat-KuroKun-v0 \
+  --num_envs 1024 \
+  --headless \
+  --video \
+  --video_length 300 \
+  --video_interval 5000
+```
+
+| Argument | Description | Default |
+|---|---|---|
+| `--task` | Environment ID | `Isaac-Velocity-Flat-KuroKun-v0` |
+| `--num_envs` | Number of parallel simulation environments | 1024 |
+| `--headless` | Run without GUI (faster) | off |
+| `--video` | Record video clips during training | off |
+| `--video_length` | Length of each video clip (steps) | 200 |
+| `--video_interval` | Steps between video recordings | 2000 |
+
+### Monitoring with TensorBoard
+
+In a separate terminal (can be started at any time during training):
+
+```bash
+cd /path/to/KuroKun_Biped_Robot
+tensorboard --logdir logs/rsl_rl/kurokun_flat
+```
+
+Open `http://localhost:6006` in a browser. Key metrics to watch:
+
+| Metric | Meaning | Target |
+|---|---|---|
+| `Train/mean_episode_length` | Steps survived per episode | Approaches max (~1000) |
+| `Train/mean_reward` | Average total reward | Increasing |
+| `Episode/rew_track_lin_vel_xy_exp` | Velocity-tracking reward | Positive and stable |
+| `Episode/rew_termination_penalty` | Fall penalty | Near 0 (robot stops falling) |
+
+Training is considered successful when `mean_episode_length` saturates near the maximum (20 s ÷ simulation dt) and the termination penalty approaches 0.
+
+### Evaluating a Trained Policy
+
+```bash
+cd /path/to/KuroKun_Biped_Robot
+
+./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/play.py \
+  --task Isaac-Velocity-Flat-KuroKun-Play-v0 \
+  --num_envs 50 \
+  --load_run <timestamp> \
+  --video \
+  --video_length 500
+```
+
+Replace `<timestamp>` with the run directory name under `logs/rsl_rl/kurokun_flat/` (e.g. `2026-03-03_13-05-37`).
+
+### Output Structure
+
+```
+KuroKun_Biped_Robot/
+└── logs/rsl_rl/kurokun_flat/<timestamp>/
+    ├── params/
+    │   ├── env.yaml            # Environment config snapshot
+    │   └── agent.yaml          # PPO config snapshot
+    ├── videos/
+    │   ├── train/              # Clips recorded during training
+    │   └── play/               # Clips recorded during evaluation
+    ├── model_*.pt              # Checkpoints saved every 50 iterations
+    └── events.out.tfevents.*   # TensorBoard logs
+```
+
+### Configuration Files
+
+| File | Description |
+|---|---|
+| `IsaacLab/source/isaaclab_assets/isaaclab_assets/robots/kurokun.py` | Robot asset config (USD path, actuators, initial pose) |
+| `IsaacLab/source/isaaclab_tasks/.../config/kurokun/flat_env_cfg.py` | Flat-terrain environment config |
+| `IsaacLab/source/isaaclab_tasks/.../config/kurokun/rough_env_cfg.py` | Rough-terrain environment config and reward weights |
+| `IsaacLab/source/isaaclab_tasks/.../config/kurokun/agents/rsl_rl_ppo_cfg.py` | PPO hyperparameters |
+
+Key design choices:
+
+| Parameter | Value | Reason |
+|---|---|---|
+| `enabled_self_collisions` | `False` | Adjacent motor boxes would cause jitter; standard practice for locomotion training |
+| `action_scale` | 0.25 | Small robot — reduced action scale prevents over-actuation |
+| `effort_limit_sim` | 1.5 N·m | Matches LX-16A stall torque |
+| `max_iterations` (flat) | 1000 | Sufficient for flat-terrain convergence |
+| `actor_hidden_dims` | [128, 128, 128] | Compact network suitable for 8-DOF robot |
+| Contact body for foot air-time | `.*_ankle_link` | `foot_link` is merged into `ankle_link` by `--merge-joints` |
 
 ---
 
