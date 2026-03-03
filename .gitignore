@@ -6,9 +6,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Isaac Sim generated files (derived from URDF, do not commit)
-model/*.usd
-model/configuration/
+# Isaac Sim runtime artifacts (do not commit)
 model/__pycache__/
 model/.asset_hash
 model/config.yaml
