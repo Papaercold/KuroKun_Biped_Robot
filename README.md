@@ -245,18 +245,18 @@ cd /path/to/KuroKun_Biped_Robot
 ./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/play.py \
   --task Isaac-Velocity-Flat-KuroKun-Play-v0 \
   --num_envs 50 \
-  --load_run <timestamp> \
+  --load_run <run_name> \
   --video \
   --video_length 500
 ```
 
-Replace `<timestamp>` with the run directory name under `logs/rsl_rl/kurokun_flat/` (e.g. `2026-03-03_13-05-37`).
+Replace `<run_name>` with the run directory name under `logs/rsl_rl/kurokun_flat/` (e.g. `flat_baseline`).
 
 ### Output Structure
 
 ```
 KuroKun_Biped_Robot/
-└── logs/rsl_rl/kurokun_flat/<timestamp>/
+└── logs/rsl_rl/kurokun_flat/<run_name>/
     ├── params/
     │   ├── env.yaml            # Environment config snapshot
     │   └── agent.yaml          # PPO config snapshot

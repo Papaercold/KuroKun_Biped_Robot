@@ -10,3 +10,6 @@ __pycache__/
 model/__pycache__/
 model/.asset_hash
 model/config.yaml
+
+# Hydra run logs (auto-generated, no useful content)
+outputs/

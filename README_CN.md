@@ -245,18 +245,18 @@ cd /path/to/KuroKun_Biped_Robot
 ./IsaacLab/isaaclab.sh -p IsaacLab/scripts/reinforcement_learning/rsl_rl/play.py \
   --task Isaac-Velocity-Flat-KuroKun-Play-v0 \
   --num_envs 50 \
-  --load_run <时间戳> \
+  --load_run <运行名> \
   --video \
   --video_length 500
 ```
 
-将 `<时间戳>` 替换为 `logs/rsl_rl/kurokun_flat/` 下对应的运行目录名（例如 `2026-03-03_13-05-37`）。
+将 `<运行名>` 替换为 `logs/rsl_rl/kurokun_flat/` 下对应的运行目录名（例如 `flat_baseline`）。
 
 ### 输出目录结构
 
 ```
 KuroKun_Biped_Robot/
-└── logs/rsl_rl/kurokun_flat/<时间戳>/
+└── logs/rsl_rl/kurokun_flat/<运行名>/
     ├── params/
     │   ├── env.yaml            # 环境配置快照
     │   └── agent.yaml          # PPO 配置快照
