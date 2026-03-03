@@ -67,16 +67,110 @@ KuroKun 每条腿使用 **4 个电机**，共 8 个。规定机器人面向方�
 
 ---
 
+## URDF
+
+`URDF/kurokun.urdf` 是用于刚体动力学仿真的**简化 Box 模型** URDF。所有结构件均以均质长方体近似，放弃视觉精度，换取正确的质量、质心与惯性张量——这三者才是动力学仿真中唯一起作用的物理量。
+
+### 快速查看（ROS 2 Jazzy）
+
+**安装依赖**（已安装可跳过）：
+
+```bash
+sudo apt install ros-jazzy-robot-state-publisher \
+                 ros-jazzy-joint-state-publisher-gui \
+                 ros-jazzy-rviz2
+```
+
+**启动：**
+
+```bash
+ros2 launch URDF/view_robot.launch.py
+```
+
+该命令同时打开以下窗口：
+- **RViz2** — 3D 可视化界面，固定坐标系为 `base_link`
+- **joint_state_publisher_gui** — 滑动条，可交互式拖动每个关节
+
+### 坐标系约定
+
+| 轴 | 方向 |
+|---|---|
+| X | 机器人正前方 |
+| Y | 机器人左侧 |
+| Z | 竖直向上 |
+
+### 运动学链
+
+```
+base_link  (120×100×60 mm，250 g)
+├── left_hip_roll   [转动，X 轴]  →  left_hip_roll_link   (48 g)
+│     └── left_hip_pitch  [转动，Y 轴]  →  left_hip_pitch_link  (48 g)
+│           └── [固定]  →  left_thigh_link  (10 g)
+│                 └── left_knee  [转动，Y 轴]  →  left_knee_link  (48 g)
+│                       └── [固定]  →  left_shank_link  (10 g)
+│                             └── left_ankle  [转动，Y 轴]  →  left_ankle_link  (48 g)
+│                                   └── [固定]  →  left_foot_link  (10 g)
+└── right_hip_roll  [转动，X 轴]  →  （右腿与左腿镜像对称）
+```
+
+### 链接（Links）
+
+| 链接名 | 箱体尺寸（mm） | 质量 | 说明 |
+|---|---|---|---|
+| `base_link` | 120 × 100 × 60 | 250 g | 躯干：树莓派 4B + 电源 + 结构件 |
+| `*_hip_roll_link` | 24.72 × 45.22 × 36.3 | 48 g | LX-16A 舵机；长轴沿 Y（绕 Z 旋转 90°） |
+| `*_hip_pitch_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
+| `*_thigh_link` | 37 × 25 × 35 | 10 g | 3D 打印大腿连接件 |
+| `*_knee_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
+| `*_shank_link` | 37 × 25 × 35 | 10 g | 3D 打印小腿连接件 |
+| `*_ankle_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A 舵机；长轴沿 X |
+| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D 打印脚板；质心沿 X 正向偏移 10 mm |
+
+### 关节（Joints）
+
+| 关节 | 类型 | 旋转轴 | 范围 | 力矩 | 速度 |
+|---|---|---|---|---|---|
+| `*_hip_roll` | 转动 | X | ±30°（±0.524 rad） | 1.5 N·m | 6.1 rad/s |
+| `*_hip_pitch` | 转动 | Y | ±45°（±0.785 rad） | 1.5 N·m | 6.1 rad/s |
+| `*_knee` | 转动 | Y | −90° ~ 0° | 1.5 N·m | 6.1 rad/s |
+| `*_ankle` | 转动 | Y | ±30°（±0.524 rad） | 1.5 N·m | 6.1 rad/s |
+| `*_thigh_joint`、`*_shank_joint`、`*_ankle_to_foot` | 固定 | — | — | — | — |
+
+### 髋关节 L 形布局
+
+从上方（XY 平面）俯视，两个髋部电机构成 **L 形**：
+
+```
++X（正前方）
+     ↑
+     │   ┌────────────────┐
+     │   │   hip_pitch    │   ← 转动关节，Y 轴；长轴沿 X
+     │   └────────────────┘
+     │             ┌──────────────────────┐
+     └─────────────┤      hip_roll        │   ← 转动关节，X 轴；长轴沿 Y
+                   └──────────────────────┘
+                   ↑ 两电机外侧面对齐（L 形开口朝向机器人内侧）
+```
+
+- **hip_pitch**（前侧）：长轴（45.22 mm）沿 X 方向
+- **hip_roll**（后侧）：绕 Z 轴旋转 90°，长轴（45.22 mm）沿 Y 方向
+- 两电机沿 X 方向**紧贴无间隙**；外侧 Y 面**对齐平整**
+- L 形开口**朝内**，hip_roll 朝机器人中心延伸
+
+---
+
 ## 仓库结构
 
 ```
 KuroKun_Biped_Robot/
-├── 3DPrintDocuments/   # 所有结构件的 3D 打印文件
-├── FusionDocuments/    # Fusion 360 CAD 源文件
+├── 3DPrintDocuments/        # 所有结构件的 3D 打印文件
+├── FusionDocuments/         # Fusion 360 CAD 源文件
 ├── URDF/
-│   └── kurokun.urdf    # 用于仿真的简化 Box 模型 URDF
-├── README.md           # 英文文档
-└── README_CN.md        # 本文件（中文）
+│   ├── kurokun.urdf         # 用于仿真的简化 Box 模型 URDF
+│   ├── view_robot.launch.py # ROS 2 启动文件（RSP + joint_state_publisher_gui + RViz2）
+│   └── kurokun.rviz         # 预配置 RViz2 布局（固定坐标系 = base_link）
+├── README.md                # 英文文档
+└── README_CN.md             # 本文件（中文）
 ```
 
 ---

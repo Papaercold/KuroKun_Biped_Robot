@@ -67,16 +67,110 @@ Bipedal locomotion was developed and trained in **NVIDIA Isaac Sim**, then trans
 
 ---
 
+## URDF
+
+`URDF/kurokun.urdf` is a **simplified box-model** URDF for rigid-body dynamics simulation. Every part is approximated as a uniform solid box — visual fidelity is intentionally traded away in favor of correct mass, center of mass, and inertia tensor, which are the only properties that affect dynamics.
+
+### Quick View (ROS 2 Jazzy)
+
+**Install dependencies** (skip if already installed):
+
+```bash
+sudo apt install ros-jazzy-robot-state-publisher \
+                 ros-jazzy-joint-state-publisher-gui \
+                 ros-jazzy-rviz2
+```
+
+**Launch:**
+
+```bash
+ros2 launch URDF/view_robot.launch.py
+```
+
+This opens three windows simultaneously:
+- **RViz2** — 3D visualization with `base_link` as the fixed frame
+- **joint_state_publisher_gui** — sliders to move every joint interactively
+
+### Coordinate Convention
+
+| Axis | Direction |
+|---|---|
+| X | Forward (robot facing direction) |
+| Y | Left |
+| Z | Up |
+
+### Kinematic Chain
+
+```
+base_link  (120×100×60 mm, 250 g)
+├── left_hip_roll   [revolute, X]  →  left_hip_roll_link   (48 g)
+│     └── left_hip_pitch  [revolute, Y]  →  left_hip_pitch_link  (48 g)
+│           └── [fixed]  →  left_thigh_link  (10 g)
+│                 └── left_knee  [revolute, Y]  →  left_knee_link  (48 g)
+│                       └── [fixed]  →  left_shank_link  (10 g)
+│                             └── left_ankle  [revolute, Y]  →  left_ankle_link  (48 g)
+│                                   └── [fixed]  →  left_foot_link  (10 g)
+└── right_hip_roll  [revolute, X]  →  (mirror of left leg)
+```
+
+### Links
+
+| Link | Box size (mm) | Mass | Notes |
+|---|---|---|---|
+| `base_link` | 120 × 100 × 60 | 250 g | Torso — RPi 4B + PSU + structure |
+| `*_hip_roll_link` | 24.72 × 45.22 × 36.3 | 48 g | LX-16A; long axis along Y (rotated 90° from standard) |
+| `*_hip_pitch_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_thigh_link` | 37 × 25 × 35 | 10 g | 3D-printed thigh connector |
+| `*_knee_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_shank_link` | 37 × 25 × 35 | 10 g | 3D-printed shank connector |
+| `*_ankle_link` | 45.22 × 24.72 × 36.3 | 48 g | LX-16A; long axis along X |
+| `*_foot_link` | 80 × 45 × 10 | 10 g | 3D-printed foot; CoM offset +10 mm forward |
+
+### Joints
+
+| Joint | Type | Axis | Range | Effort | Velocity |
+|---|---|---|---|---|---|
+| `*_hip_roll` | revolute | X | ±30° (±0.524 rad) | 1.5 N·m | 6.1 rad/s |
+| `*_hip_pitch` | revolute | Y | ±45° (±0.785 rad) | 1.5 N·m | 6.1 rad/s |
+| `*_knee` | revolute | Y | −90° ~ 0° | 1.5 N·m | 6.1 rad/s |
+| `*_ankle` | revolute | Y | ±30° (±0.524 rad) | 1.5 N·m | 6.1 rad/s |
+| `*_thigh_joint`, `*_shank_joint`, `*_ankle_to_foot` | fixed | — | — | — | — |
+
+### Hip Assembly (L-shape)
+
+The two hip motors form an **L-shape** when viewed from above (XY plane):
+
+```
++X (forward)
+     ↑
+     │   ┌────────────────┐
+     │   │   hip_pitch    │   ← revolute, Y-axis; long axis along X
+     │   └────────────────┘
+     │             ┌──────────────────────┐
+     └─────────────┤      hip_roll        │   ← revolute, X-axis; long axis along Y
+                   └──────────────────────┘
+                   ↑ outer faces flush (L opens inward toward robot center)
+```
+
+- **hip_pitch** is the front motor; its long axis (45.22 mm) points along X
+- **hip_roll** is the rear motor; rotated 90° around Z so its long axis (45.22 mm) points along Y
+- The two motors **touch** along X with no gap; their outer Y-faces are **flush**
+- The L opens **inward**, so hip_roll extends toward the robot center
+
+---
+
 ## Repository Structure
 
 ```
 KuroKun_Biped_Robot/
-├── 3DPrintDocuments/   # 3D print files for all structural parts
-├── FusionDocuments/    # Fusion 360 CAD source files
+├── 3DPrintDocuments/        # 3D print files for all structural parts
+├── FusionDocuments/         # Fusion 360 CAD source files
 ├── URDF/
-│   └── kurokun.urdf    # Simplified box-model URDF for simulation
-├── README.md           # This file (English)
-└── README_CN.md        # 中文文档
+│   ├── kurokun.urdf         # Simplified box-model URDF for simulation
+│   ├── view_robot.launch.py # ROS 2 launch file (RSP + joint_state_publisher_gui + RViz2)
+│   └── kurokun.rviz         # Pre-configured RViz2 layout (Fixed Frame = base_link)
+├── README.md                # This file (English)
+└── README_CN.md             # 中文文档
 ```
 
 ---
