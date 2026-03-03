@@ -1,5 +1,7 @@
 # KuroKun Biped Robot — Official Design Documentation
 
+**Language:** English | [中文](README_CN.md)
+
 KuroKun is an open-source bipedal robot platform. This repository serves as the **official design documentation** for KuroKun, covering mechanical design, simulation, and real-world deployment.
 
 ---
