@@ -1,0 +1,97 @@
+--- git status ---
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   scripts/reinforcement_learning/rsl_rl/train.py
+	modified:   source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/agents/rsl_rl_ppo_cfg.py
+	modified:   source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/flat_env_cfg.py
+	modified:   source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/rough_env_cfg.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/scripts/reinforcement_learning/rsl_rl/train.py b/scripts/reinforcement_learning/rsl_rl/train.py
+index 0cce12d7eba..6138bbc2b8b 100644
+--- a/scripts/reinforcement_learning/rsl_rl/train.py
++++ b/scripts/reinforcement_learning/rsl_rl/train.py
+@@ -152,7 +152,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
+     # change it (see PR #2346, comment-2819298849)
+     print(f"Exact experiment name requested from command line: {log_dir}")
+     if agent_cfg.run_name:
+-        log_dir += f"_{agent_cfg.run_name}"
++        log_dir = agent_cfg.run_name
+     log_dir = os.path.join(log_root_path, log_dir)
+ 
+     # set the IO descriptors export flag if requested
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/agents/rsl_rl_ppo_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/agents/rsl_rl_ppo_cfg.py
+index bbd1b7044db..678243793a1 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/agents/rsl_rl_ppo_cfg.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/agents/rsl_rl_ppo_cfg.py
+@@ -44,5 +44,6 @@ class KuroKunFlatPPORunnerCfg(KuroKunRoughPPORunnerCfg):
+ 
+         self.max_iterations = 1000
+         self.experiment_name = "kurokun_flat"
++        self.run_name = "flat_forward"
+         self.policy.actor_hidden_dims = [128, 128, 128]
+         self.policy.critic_hidden_dims = [128, 128, 128]
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/flat_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/flat_env_cfg.py
+index c3589ad5072..205bce87c57 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/flat_env_cfg.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/flat_env_cfg.py
+@@ -1,5 +1,6 @@
+ """KuroKun flat-terrain locomotion environment configuration."""
+ 
++from isaaclab.envs import ViewerCfg
+ from isaaclab.utils import configclass
+ 
+ from .rough_env_cfg import KuroKunRoughEnvCfg
+@@ -22,6 +23,12 @@ class KuroKunFlatEnvCfg(KuroKunRoughEnvCfg):
+         self.observations.policy.height_scan = None
+         self.curriculum.terrain_levels = None
+ 
++        # bias training toward forward walking; allow small lateral drift
++        self.commands.base_velocity.ranges.lin_vel_x = (0.3, 0.8)
++        self.commands.base_velocity.ranges.lin_vel_y = (-0.1, 0.1)
++        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
++        self.commands.base_velocity.ranges.heading = (-0.5, 0.5)
++
+ 
+ @configclass
+ class KuroKunFlatEnvCfg_PLAY(KuroKunFlatEnvCfg):
+@@ -31,3 +38,18 @@ class KuroKunFlatEnvCfg_PLAY(KuroKunFlatEnvCfg):
+         self.scene.num_envs = 50
+         self.scene.env_spacing = 2.5
+         self.observations.policy.enable_corruption = False
++
++        # forward-only for evaluation
++        self.commands.base_velocity.ranges.lin_vel_x = (0.3, 0.6)
++        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
++        self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
++        self.commands.base_velocity.ranges.heading = (0.0, 0.0)
++
++        # camera centered on env 0; pulled back to show a ~3×3 cluster of robots
++        # env_spacing=2.5 m, so eye at ~4 m covers the immediate neighbours
++        self.viewer = ViewerCfg(
++            eye=(4.0, 3.0, 3.0),
++            lookat=(0.0, 0.0, 0.3),
++            origin_type="env",
++            env_index=0,
++        )
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/rough_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/rough_env_cfg.py
+index dc55007ad6e..ca17e0f78cf 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/rough_env_cfg.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/kurokun/rough_env_cfg.py
+@@ -24,7 +24,7 @@ class KuroKunRewardsCfg(RewardsCfg):
+         func=mdp.feet_air_time_positive_biped,
+         weight=2.5,
+         params={
+-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot_link"),
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_link"),
+             "command_name": "base_velocity",
+             "threshold": 0.2,
+         },
